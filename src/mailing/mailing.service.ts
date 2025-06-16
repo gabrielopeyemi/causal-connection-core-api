@@ -62,7 +62,9 @@ export class MailingService {
   }
 
   async sendVerificationEmail(email: string, token: string) {
+    this.logger.debug('verification token:', token);
     const verificationUrl = `${this.configService.get<string>('FRONTEND_URL')}/verify-email?token=${token}`;
+
     const subject = 'Verify your email';
     const html = `
       <p>Click the link below to verify your email:</p>

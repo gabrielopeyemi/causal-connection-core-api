@@ -49,6 +49,12 @@ class User {
 
   @Prop({ default: false })
   isVerified: boolean;
+
+  @Prop({ default: false })
+  isEmailVerified: boolean;
+
+  @Prop({ default: false })
+  isPhoneVerified: boolean;
 }
 
 const UserSchema = SchemaFactory.createForClass(User);

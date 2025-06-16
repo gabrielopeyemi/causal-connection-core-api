@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 // import { SignupDto, LoginDto, VerifyDto } from './dto';
 // import { JwtAuthGuard } from './jwt-auth.guard';
@@ -9,10 +9,12 @@ import { VerifyDto } from './dto/verify.dto';
 
 @Controller('auth')
 export class AuthController {
+  private logger = new Logger('AuthController');
   constructor(private authService: AuthService) {}
 
   @Post('signup')
   signup(@Body() dto: SignupDto) {
+    this.logger.debug('signup dto:', dto);
     return this.authService.signup(dto);
   }
 

@@ -11,7 +11,7 @@ export class SignupDto {
   @ApiProperty({
     name: 'email',
     description: 'User email address',
-    example: 'kyo@yupmail.com',
+    example: 'famosipe2025@gmail.com',
   })
   @IsEmail()
   email: string;
@@ -28,8 +28,7 @@ export class SignupDto {
   password: string;
 
   @ApiProperty({
-    name: 'First name',
-    description: 'first  name',
+    name: 'firstName',
     required: false,
     example: 'Kyo',
   })
@@ -37,8 +36,7 @@ export class SignupDto {
   firstName?: string;
 
   @ApiProperty({
-    name: 'Last name',
-    description: 'last name',
+    name: 'lastName',
     required: false,
     example: 'Yup',
   })

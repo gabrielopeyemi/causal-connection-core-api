@@ -6,14 +6,16 @@ export class LoginDto {
   @ApiProperty({
     name: 'email',
     description: 'User email address',
+    example: 'famosipe2025@gmail.com',
   })
   email: string;
 
   @IsNotEmpty()
-    @ApiProperty({
-        name: 'password',
-        description: 'User password',
-        minLength: 6,
-    })
+  @ApiProperty({
+    name: 'password',
+    description: 'User password',
+    minLength: 6,
+    example: 'password123',
+  })
   password: string;
 }

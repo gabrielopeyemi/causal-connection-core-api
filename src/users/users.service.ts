@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-import { Injectable, NotFoundException } from '@nestjs/common';
+
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 // import { User, UserDocument } from './schemas/user.schema';
@@ -17,6 +16,7 @@ import {
 
 @Injectable()
 export class UsersService {
+  private logger = new Logger(UsersService.name);
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(VerificationToken.name)
@@ -33,6 +33,17 @@ export class UsersService {
     const user = await createdUser.save();
 
     return user;
+  }
+
+  async updateUser(
+    userId: string,
+    dto: UpdateUserDto | Partial<User>,
+  ): Promise<User> {
+    const updated = await this.userModel.findByIdAndUpdate(userId, dto, {
+      new: true,
+    });
+    if (!updated) throw new NotFoundException('User not found');
+    return updated;
   }
 
   async sendVerificationEmail({
@@ -151,5 +162,4 @@ export class UsersService {
 
     return record;
   }
-  
 }

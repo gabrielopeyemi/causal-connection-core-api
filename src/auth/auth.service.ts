@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/require-await */
@@ -21,19 +22,31 @@ export class AuthService {
 
   async signup(dto: SignupDto) {
     const hashedPassword = await bcrypt.hash(dto.password, 10);
-    const user = (await this.usersService.create({
-      ...dto,
-      password: hashedPassword,
-    })) as User & { _id: string };
+
+    let user: User & { _id: string };
+
+    const existingUser: (User & { _id: string }) | any =
+      await this.usersService.findByEmail(dto.email);
+
+    this.logger.debug('dto:', dto);
+    this.logger.debug('existingUser:', existingUser);
+
+    if (existingUser && !existingUser.isVerified) {
+      user = (await this.usersService.updateUser(existingUser?._id, {
+        ...dto,
+        password: hashedPassword,
+      })) as User & { _id: string };
+    } else {
+      user = (await this.usersService.create({
+        ...dto,
+        password: hashedPassword,
+      })) as User & { _id: string };
+    }
+
+    this.logger.debug('creating user:', dto);
 
     this.logger.log('creating token for user:', user.email);
     const token = await this.generateToken(user);
-
-    this.logger.log('sending verification email to:', user.email);
-    await this.usersService.sendVerificationEmail({
-      email: user.email,
-      token: token.access_token,
-    });
 
     this.logger.log('storing verification token for user:', user.email);
     await this.usersService.createVerificationToken({
@@ -41,6 +54,12 @@ export class AuthService {
       type: 'email',
       token: token.access_token, // Use the JWT token as the verification token
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // Default to 24 hours
+    });
+
+    this.logger.log('sending verification email to:', user.email);
+    await this.usersService.sendVerificationEmail({
+      email: user.email,
+      token: token.access_token,
     });
 
     return {

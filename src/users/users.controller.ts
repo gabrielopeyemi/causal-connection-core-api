@@ -34,14 +34,4 @@ export class UsersController {
   searchUsers(@Query('q') q: string) {
     return this.usersService.searchUsers(q);
   }
-
-//   @Get('verify-email')
-// async verifyEmail(@Query('token') token: string, @Res() res: Response) {
-//   const result = await this.authService.verifyEmailToken(token);
-//   if (result.success) {
-//     return res.redirect('/email-verified-success');
-//   }
-//   return res.redirect('/email-verification-failed');
-// }
-
 }
