@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/require-await */
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 // import { SignupDto, LoginDto, VerifyDto } from './dto';
 import { UsersService } from '../users/users.service';
@@ -11,14 +10,12 @@ import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { VerifyDto } from './dto/verify.dto';
 import { User } from 'src/schema/user.schema';
+import { generateJWTToken } from 'src/utils/jwt';
 
 @Injectable()
 export class AuthService {
   private logger = new Logger('AuthService');
-  constructor(
-    private usersService: UsersService,
-    private jwt: JwtService,
-  ) {}
+  constructor(private usersService: UsersService) {}
 
   async signup(dto: SignupDto) {
     const hashedPassword = await bcrypt.hash(dto.password, 10);
@@ -48,19 +45,21 @@ export class AuthService {
     this.logger.log('creating token for user:', user.email);
     const token = await this.generateToken(user);
 
-    this.logger.log('storing verification token for user:', user.email);
-    await this.usersService.createVerificationToken({
-      userId: user._id,
-      type: 'email',
-      token: token.access_token, // Use the JWT token as the verification token
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // Default to 24 hours
-    });
+    if (token.access_token) {
+      this.logger.log('storing verification token for user:', user.email);
+      await this.usersService.createVerificationToken({
+        userId: user._id,
+        type: 'email',
+        token: token.access_token, // Use the JWT token as the verification token
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // Default to 24 hours
+      });
 
-    this.logger.log('sending verification email to:', user.email);
-    await this.usersService.sendVerificationEmail({
-      email: user.email,
-      token: token.access_token,
-    });
+      this.logger.log('sending verification email to:', user.email);
+      await this.usersService.sendVerificationEmail({
+        email: user.email,
+        token: token.access_token,
+      });
+    }
 
     return {
       success: true,
@@ -114,10 +113,13 @@ export class AuthService {
     return this.usersService.findById(user.sub);
   }
 
-  private async generateToken(user: any) {
-    const payload = { sub: user._id, email: user.email };
+  private async generateToken(
+    user: any,
+  ): Promise<{ access_token: string | undefined; user: any }> {
+    const payload = { sub: user._id, email: user.email, _id: user._id };
+    const access_token = generateJWTToken(payload);
     return {
-      access_token: this.jwt.sign(payload),
+      access_token,
       user: { id: user._id, email: user.email, name: user.name },
     };
   }
